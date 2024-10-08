@@ -13,6 +13,11 @@ python -m spacy download en_core_web_sm  # Download the English model
 SPACY_OUT = "data/spacy_output.pkl.gz"
 cfg = Config()
 
+# download en_core_web_sm
+# python -m spacy download en_core_web_sm
+
+spacy.cli.download("en_core_web_sm")
+
 def tokenize_text(text):
     # up the maximum length of text that can be processed to 10 gb
     # Load the spaCy model

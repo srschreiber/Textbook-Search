@@ -7,3 +7,4 @@ class Config:
         self.TEXT_PATH = "data/text.txt"
         self.VOCAB_PATH = "data/vocabulary.txt"
         self.WORD2VEC_MODEL_PATH = "data/word2vec.model"
+        self.BM25_MODEL_PATH = "data/bm25.model"
