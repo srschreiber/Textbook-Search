@@ -5,6 +5,7 @@ from nltk.corpus.reader.wordnet import WordNetError
 from nltk.stem import WordNetLemmatizer
 from typing import List, Tuple
 from tokenizer import get_text_vocabulary
+from config import Config
 
 nltk.download("wordnet")
 nltk.download("wordnet_ic")
@@ -13,6 +14,7 @@ class WordExpansion:
     def __init__(self):
         self.wnl: WordNetLemmatizer = WordNetLemmatizer()
         self.brown_ic = wordnet_ic.ic("ic-brown.dat")
+        self.cfg = Config()
     
     
     def vocab_to_lemmas(self, vocab: set) -> set:
@@ -65,7 +67,7 @@ class WordExpansion:
 # Test it out with a word
 if __name__ == "__main__":
     we = WordExpansion()
-    vocab = get_text_vocabulary("data/text.txt")
+    vocab = get_text_vocabulary()
     lemmas = we.vocab_to_lemmas(vocab)
     out = we.expand_word("run", vocab=lemmas, max_distance=1)
     print(out)

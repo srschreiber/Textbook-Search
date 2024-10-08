@@ -2,6 +2,7 @@ import spacy
 import pickle
 import gzip
 from spacy.tokens.doc import Doc
+from config import Config
 from collections import Counter
 import os
 
@@ -10,12 +11,14 @@ pip install spacy
 python -m spacy download en_core_web_sm  # Download the English model
 """
 SPACY_OUT = "data/spacy_output.pkl.gz"
+cfg = Config()
+
 def tokenize_text(text):
     # up the maximum length of text that can be processed to 10 gb
     # Load the spaCy model
     nlp = spacy.load("en_core_web_sm")
     nlp.max_length = 10000000000
-    IN_FILE = "data/text.txt"    
+    IN_FILE = cfg.TEXT_PATH   
 
     # Read the text file
     with open(IN_FILE, "r") as file:
@@ -26,16 +29,16 @@ def tokenize_text(text):
         with gzip.open(SPACY_OUT, 'wb') as f:
             pickle.dump(doc, f)
 
-def get_text_vocabulary(text_location: str, min_frequency=5) -> set:
+def get_text_vocabulary(min_frequency=5) -> set:
     """
     Include each word in the vocabulary if it appears at least min_frequency times in the text
     """
     # if the vocabulary file exists, read it and return it
-    if os.path.exists("data/vocabulary.txt"):
-        with open("data/vocabulary.txt", "r") as file:
+    if os.path.exists(cfg.VOCAB_PATH):
+        with open(cfg.VOCAB_PATH, "r") as file:
             return {line.strip() for line in file}
         
-    with open(text_location, "r") as file:
+    with open(cfg.TEXT_PATH, "r") as file:
         text = file.read()
         nlp = spacy.load("en_core_web_sm")
         # Process the text with spaCy
@@ -48,9 +51,10 @@ def get_text_vocabulary(text_location: str, min_frequency=5) -> set:
         # Filter the vocabulary
         vocab = {word for word, count in vocab.items() if count >= min_frequency}
         # write the vocabulary to a file
-        with open("data/vocabulary.txt", "w") as file:
+        with open(cfg.VOCAB_PATH, "w") as file:
             for word in vocab:
                 file.write(word + "\n")
+        return vocab
 
 
 def load_spacy_output() -> Doc:
@@ -60,7 +64,7 @@ def load_spacy_output() -> Doc:
 
 if __name__ == "__main__":
     print("Tokenizing text...")
-    tokenize_text("data/text.txt")
+    tokenize_text(cfg.TEXT_PATH)
     print("Tokenization complete")
     print("Loading text into spacy doc...")
     doc = load_spacy_output()

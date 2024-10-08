@@ -5,3 +5,4 @@ pandas
 datasets
 accelerate
 nltk
+gensim
