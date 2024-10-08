@@ -1,6 +1,6 @@
 import gensim
 from gensim.models import Word2Vec
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize, sent_tokenize
 import nltk
 from config import Config
 """
@@ -10,6 +10,7 @@ This will help us to generate a more accurate query expansion and reduce noise i
 """
 import os
 
+nltk.download('punkt_tab')
 # Load the text
 class WordEmbedder:
     def __init__(self):
@@ -29,12 +30,20 @@ class WordEmbedder:
         # Load the text
         with open(self.cfg.TEXT_PATH, "r") as file:
             text = file.read()
+            # replace multiple spaces with a single space
+            text = ' '.join(text.split())
+            text = ' '.join(text.split('\n'))
+            text = ' '.join(text.split('\t'))
+            text = ' '.join(text.split('\r'))
+            text = ' '.join(text.split('-'))
             # Tokenize the text
             tokens = word_tokenize(text)
+            sentences = sent_tokenize(text)
             # to lowercase
             tokens = [w.lower() for w in tokens]
+            sentences = [s.lower() for s in sentences]
             # Train the model
-            self.model = Word2Vec([tokens], vector_size=100, window=5, min_count=1, sg=1)
+            self.model = Word2Vec(sentences=sentences, vector_size=100, window=5, min_count=1, workers=4)
             # Save the model
             self.model.save(self.cfg.WORD2VEC_MODEL_PATH)
     
