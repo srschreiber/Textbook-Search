@@ -117,7 +117,7 @@ class WordExpansion:
 
         expanded_query = defaultdict(set[str])
         for word in removed_stopwords:
-            expanded = self.expand_word(word, max_distance=5)
+            expanded = self.expand_word(word, max_distance=4)
             for w in expanded:
                 expanded_query[word].add(w)
 
