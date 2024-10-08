@@ -14,9 +14,6 @@ nltk.download("wordnet_ic")
 
 class WordExpansion:
     def __init__(self, sim_threshold: float = 0.2):
-        """
-        alpha: float - the weight multiplier for query expansion
-        """
         self.wnl: WordNetLemmatizer = WordNetLemmatizer()
         self.brown_ic = wordnet_ic.ic("ic-brown.dat")
         self.cfg = Config()
@@ -64,7 +61,7 @@ class WordExpansion:
 
         # Perform a BFS
         while queue:
-            w, depth = queue.pop(0)
+            w, depth = queue.pop()
 
             if depth > max_distance:
                 continue
