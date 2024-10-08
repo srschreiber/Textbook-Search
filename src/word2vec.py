@@ -16,6 +16,7 @@ class WordEmbedder:
     def __init__(self):
         self.cfg = Config()
         self.model: Word2Vec = None
+        self.lemmatizer = nltk.WordNetLemmatizer()
     
     def load(self):
         self.model = Word2Vec.load(self.cfg.WORD2VEC_MODEL_PATH)
@@ -24,6 +25,10 @@ class WordEmbedder:
         return word in self.model.wv.key_to_index
 
     def similarity(self, word1, word2):
+        # convert both to lemma form
+        word1 = self.lemmatizer.lemmatize(word1)
+        word2 = self.lemmatizer.lemmatize(word2)
+        
         return self.model.wv.similarity(word1, word2)
     
     def train(self):
@@ -43,8 +48,13 @@ class WordEmbedder:
             # Tokenize each sentence into words
             tokenized_sentences = [word_tokenize(s.lower()) for s in sentences]
 
+            # convert tokens into lemma forms
+            for i, sentence in enumerate(tokenized_sentences):
+                for j, word in enumerate(sentence):
+                    tokenized_sentences[i][j] = self.lemmatizer.lemmatize(word)
+
             # Train the model
-            self.model = Word2Vec(sentences=tokenized_sentences, vector_size=100, window=5, min_count=1, workers=4)
+            self.model = Word2Vec(sentences=tokenized_sentences, vector_size=200, window=10, min_count=3, workers=4)
 
             # Save the model
             self.model.save(self.cfg.WORD2VEC_MODEL_PATH)
