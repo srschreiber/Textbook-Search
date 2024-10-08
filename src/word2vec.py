@@ -30,22 +30,25 @@ class WordEmbedder:
         # Load the text
         with open(self.cfg.TEXT_PATH, "r") as file:
             text = file.read()
-            # replace multiple spaces with a single space
-            text = ' '.join(text.split())
-            text = ' '.join(text.split('\n'))
-            text = ' '.join(text.split('\t'))
-            text = ' '.join(text.split('\r'))
-            text = ' '.join(text.split('-'))
-            # Tokenize the text
-            tokens = word_tokenize(text)
+            # Replace unwanted characters and normalize spaces
+            text = ' '.join(text.split())  # Removes extra spaces
+            text = text.replace('\n', ' ')  # Removes newlines
+            text = text.replace('\t', ' ')  # Removes tabs
+            text = text.replace('\r', ' ')   # Removes carriage returns
+            text = text.replace('-', ' ')     # Replaces hyphens with spaces
+
+            # Tokenize the text into sentences
             sentences = sent_tokenize(text)
-            # to lowercase
-            tokens = [w.lower() for w in tokens]
-            sentences = [s.lower() for s in sentences]
+
+            # Tokenize each sentence into words
+            tokenized_sentences = [word_tokenize(s.lower()) for s in sentences]
+
             # Train the model
-            self.model = Word2Vec(sentences=sentences, vector_size=100, window=5, min_count=1, workers=4)
+            self.model = Word2Vec(sentences=tokenized_sentences, vector_size=100, window=5, min_count=1, workers=4)
+
             # Save the model
             self.model.save(self.cfg.WORD2VEC_MODEL_PATH)
+
     
 if __name__ == "__main__":
     # Train the model if doesn't exist
@@ -55,5 +58,5 @@ if __name__ == "__main__":
         word_embedder.train()
     
     word_embedder.load()
-    print(word_embedder.similarity("king", "queen"))
+    print(word_embedder.similarity("cell", "membrane"))
     
