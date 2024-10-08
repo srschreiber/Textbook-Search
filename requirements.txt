@@ -1,0 +1,7 @@
+transformers
+torch
+spacy
+pandas
+datasets
+accelerate
+nltk
