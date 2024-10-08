@@ -8,18 +8,20 @@ from tokenizer import get_text_vocabulary
 from config import Config
 from word2vec import WordEmbedder
 from collections import defaultdict
+import heapq
 
 nltk.download("wordnet")
 nltk.download("wordnet_ic")
 
 class WordExpansion:
-    def __init__(self, sim_threshold: float = 0.2):
+    def __init__(self, sim_threshold: float = 0.6):
         self.wnl: WordNetLemmatizer = WordNetLemmatizer()
         self.brown_ic = wordnet_ic.ic("ic-brown.dat")
         self.cfg = Config()
         self.we = WordEmbedder()
         self.we.load()
         self.sim_threshold = sim_threshold
+        self.expand_limit = 50
         
     
     def vocab_to_lemmas(self, vocab: set) -> set:
@@ -59,6 +61,9 @@ class WordExpansion:
         output = []
         processed = set([root_word])
 
+        # min heap of the k largest elements
+        output = []
+
         # Perform a BFS
         while queue:
             w, depth = queue.pop()
@@ -84,19 +89,27 @@ class WordExpansion:
                         if not self.we.has_word(lemma):
                             continue
 
-                        similarity = self.we.similarity(root_word, lemma)
-                        if similarity < self.sim_threshold:
-                            continue
-
                         # Calculate similarity if needed
                         node = (lemma, depth + 1)
-                        output.append((lemma, similarity, depth + 1))
+                        sim = self.we.similarity(root_word, lemma)
+
+                        # Add to the output if the limit has not been reached
+                        if len(output) < self.expand_limit and sim >= self.sim_threshold:
+                            heapq.heappush(output, (sim, lemma))
+                        # Replace the smallest element if the new element is larger
+                        elif len(output) > 0 and sim > output[0][0]:
+                            heapq.heappop(output)
+                            heapq.heappush(output, (sim, lemma))
+
+
                         queue.append(node)
                         processed.add(lemma)
-
-        # Sort the synonyms by the depth or similarity
-        output = sorted(output, key=lambda x: x[1], reverse=True)
-        return output
+        
+        sorted_out = []
+        while output:
+            sim, node = heapq.heappop(output)
+            sorted_out.append((node, sim))
+        return sorted_out
     
     def get_expanded_query(self, query: str) -> dict[str, set[str]]:
         # remove stopwords first
@@ -104,7 +117,7 @@ class WordExpansion:
 
         expanded_query = defaultdict(set[str])
         for word in removed_stopwords:
-            expanded = self.expand_word(word, max_distance=2)
+            expanded = self.expand_word(word, max_distance=5)
             for w in expanded:
                 expanded_query[word].add(w)
 
@@ -114,7 +127,7 @@ class WordExpansion:
 if __name__ == "__main__":
     we = WordExpansion()
 
-    query = "homotypic fusion with vesicles"
+    query = "function of the cell"
 
     print("ORIGINAL QUERY:", query)
     print("EXPANDED QUERY:", we.get_expanded_query(query))
