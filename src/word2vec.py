@@ -46,6 +46,16 @@ class WordEmbedder:
             # Save the model
             self.model.save(self.cfg.WORD2VEC_MODEL_PATH)
 
+    def similarity(self, word1, word2):
+        # convert to lemmas
+        word1 = self.lemmatizer.lemmatize(word1)
+        word2 = self.lemmatizer.lemmatize(word2)
+        
+        if word1 in self.model.wv.key_to_index and word2 in self.model.wv.key_to_index:
+            return self.model.wv.similarity(word1, word2)
+        else:
+            return 0
+
 
     def top_k_similar(self, word, k=5):
         if word in self.model.wv.key_to_index:
