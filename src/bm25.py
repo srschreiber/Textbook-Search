@@ -21,8 +21,8 @@ from rank_bm25 import BM25Okapi
 class BM25Ranker:
     def __init__(self) -> None:
         self.WINDOWS_PATH = "data/windows.txt"
-        self.WINDOW_STEP = 1
-        self.WINDOW_SENTENCES = 1
+        self.WINDOW_STEP = 3
+        self.WINDOW_SENTENCES = 4
         self.cfg = Config()
         self.lemmatizer = WordNetLemmatizer()
         self.doc = load_spacy_output()
