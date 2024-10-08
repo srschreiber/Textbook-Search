@@ -8,6 +8,7 @@ This script will train a Word2Vec model on our text to generate word embeddings.
 This will be used for query expansion to decide if a synonym for a word is related to the word given the context of the text.
 This will help us to generate a more accurate query expansion and reduce noise in the search results.
 """
+import os
 
 # Load the text
 class WordEmbedder:
@@ -17,6 +18,12 @@ class WordEmbedder:
     
     def load(self):
         self.model = Word2Vec.load(self.cfg.WORD2VEC_MODEL_PATH)
+    
+    def model_has_word(self, word):
+        return word in self.model.wv.key_to_index
+
+    def similarity(self, word1, word2):
+        return self.model.wv.similarity(word1, word2)
     
     def train(self):
         # Load the text
@@ -31,4 +38,13 @@ class WordEmbedder:
             # Save the model
             self.model.save(self.cfg.WORD2VEC_MODEL_PATH)
     
+if __name__ == "__main__":
+    # Train the model if doesn't exist
+
+    word_embedder = WordEmbedder()
+    if not os.path.exists(Config().WORD2VEC_MODEL_PATH):
+        word_embedder.train()
+    
+    word_embedder.load()
+    print(word_embedder.similarity("king", "queen"))
     

@@ -1,0 +1,3 @@
+# ignore venv
+searchproj
+__pycache__
