@@ -14,10 +14,15 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.stem import WordNetLemmatizer
 import string
 
+# stopwords
+import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+
 
 from rank_bm25 import BM25Okapi
 
-
+stop_words = set(stopwords.words('english'))  # Load stop words
 class BM25Ranker:
     def __init__(self) -> None:
         self.WINDOWS_PATH = "data/windows.txt"
@@ -46,6 +51,8 @@ class BM25Ranker:
 
         tokens = word_tokenize(text.lower())
         tokens = [self.lemmatizer.lemmatize(word) for word in tokens]
+        # remove stop words
+        tokens = [word for word in tokens if word not in stop_words]
         return tokens
 
     def create_windows(self) -> Tuple[List[str], List[List[int]]]:
@@ -72,9 +79,63 @@ class BM25Ranker:
         return windows
     
     
-    def get_best_docs_for_query(self, query: str, top_n: int = 5) -> List[Tuple[str, float]]:
+    def get_best_docs_for_query(self, query: str, top_n: int = 10, expand=True) -> List[Tuple[str, float]]:
         # Normalize the query
         query = self.__tokenize_string(query)
+        expanded_terms = []
+
+        if expand:
+            expanded_terms.extend(self.we.expand_words(query))
+                
+        # now weight the terms based on the expansion scores
+        term_weights = Counter()
+
+        
+        pseudo_counts = 5
+        for term, score in expanded_terms:
+            # square the score to give more weight to the higher scores and lower weight to the lower scores
+            pseudo_count_score = log(score*score + 1) * pseudo_counts
+
+            term_weights[term] += pseudo_count_score
+        
+        if len(term_weights) > 0:
+            smallest_weight = min(term_weights.values())
+            to_add = max(1 - smallest_weight, 0)
+
+            for term in term_weights:
+                term_weights[term] += to_add
+    
+        
+        p = .8
+        # normalize so that original query takes up 70% of the weight
+        total_expansion_weight = sum(term_weights.values())
+        if total_expansion_weight >= pseudo_counts:
+            num_base = len(query)
+
+            """
+            x/(x + total_expansion_weight) = p
+            x = p(x + total_expansion_weight)
+            x = px + ptotal_expansion_weight
+            x - px = ptotal_expansion_weight
+            (1-p)x = ptotal_expansion_weight
+            x = ptotal_expansion_weight / (1-p)
+            """
+            total_original_weight = p * total_expansion_weight / (1 - p)
+            individual_original_weight = total_original_weight / num_base
+
+            # add the individual weights for the original query
+            for term in query:
+                term_weights[term] += individual_original_weight
+        else:
+            # discount the expansion terms
+            term_weights = Counter()
+            for term in query:
+                term_weights[term] += 1
+        # now unroll the weights into the query
+        query = []
+
+        for term, weight in term_weights.items():
+            query.extend([term] * round(weight))
         
         # Get BM25 scores for the query
         scores = self.bm25.get_scores(query)
@@ -113,8 +174,8 @@ def make_or_load_bm25() -> BM25Ranker:
 
 if __name__ == "__main__":
     bm25 = make_or_load_bm25()
-    query = "golgi apparatus"
-    ranked_sentences = bm25.get_best_docs_for_query(query, top_n=5)
+    query = "amphibian metamorphosis of frog thyroid hormone"
+    ranked_sentences = bm25.get_best_docs_for_query(query, top_n=100, expand=True)
 
     for i, (content, score) in enumerate(ranked_sentences):
         print(f"Document {i + 1} with score {score}:")

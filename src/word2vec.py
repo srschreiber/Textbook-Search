@@ -40,7 +40,7 @@ class WordEmbedder:
                 tokenized_sentences.append(tokens)
 
             # Train the model
-            self.model = Word2Vec(sentences=tokenized_sentences, vector_size=100, window=5, min_count=3, workers=4)
+            self.model = Word2Vec(sentences=tokenized_sentences, vector_size=200, window=2, min_count=10, workers=4)
 
             # Save the model
             self.model.save(self.cfg.WORD2VEC_MODEL_PATH)
