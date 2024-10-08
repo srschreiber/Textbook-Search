@@ -1,4 +1,3 @@
-import gensim
 from gensim.models import Word2Vec
 from nltk.tokenize import word_tokenize, sent_tokenize
 import nltk
@@ -45,12 +44,16 @@ class WordEmbedder:
 
             # Save the model
             self.model.save(self.cfg.WORD2VEC_MODEL_PATH)
+    
+    def has_word(self, word):
+        word = self.lemmatizer.lemmatize(word)
+        return word in self.model.wv.key_to_index
 
     def similarity(self, word1, word2):
         # convert to lemmas
         word1 = self.lemmatizer.lemmatize(word1)
         word2 = self.lemmatizer.lemmatize(word2)
-        
+
         if word1 in self.model.wv.key_to_index and word2 in self.model.wv.key_to_index:
             return self.model.wv.similarity(word1, word2)
         else:
