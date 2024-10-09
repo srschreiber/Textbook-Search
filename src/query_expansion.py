@@ -13,7 +13,7 @@ nltk.download("wordnet")
 nltk.download("wordnet_ic")
 
 EXPAND_LIMIT = 20
-SIMILARITY_CUTOFF = 0.8
+SIMILARITY_CUTOFF = 0.7
 class WordExpansion:
     def __init__(self):
         self.wnl: WordNetLemmatizer = WordNetLemmatizer()
@@ -59,9 +59,9 @@ class WordExpansion:
         return related_words
 
     
-    def expand_words(self, query: list[str], max_distance: int = 3) -> List[Tuple[str, float]]:
+    def expand_words(self, query: list[str], max_distance: int = 2) -> List[Tuple[str, float]]:
 
-        output = []
+        output = set()
         # explore synsets for each word in words
         for word in query:            
             # Get the root word
@@ -98,13 +98,13 @@ class WordExpansion:
 
                             # Calculate similarity if needed
                             node = (lemma, depth + 1)
-                            output.append(lemma)
+                            output.add(lemma)
                             queue.append(node)
                             processed.add(lemma)
 
 
         # find k best lemmas
-        best = select_k_best_words(query, output, EXPAND_LIMIT)
+        best = select_k_best_words(query, list(output), EXPAND_LIMIT)
         # cut off any words that are below the similarity cutoff
         best = [(word, score) for word, score in best if score >= SIMILARITY_CUTOFF]
         return best

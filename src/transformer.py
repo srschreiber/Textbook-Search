@@ -21,23 +21,25 @@ def get_embedding(text):
     # Return the mean of the last hidden states as the embedding
     return outputs.last_hidden_state.mean(dim=1).numpy()
 
+def get_similarity(query: str, text: str):
+    query_embedding = get_embedding(query)
+    text_embedding = get_embedding(text)
+    return cosine_similarity(query_embedding, text_embedding)[0][0]
 
-def select_k_best_words(query, words, k=5):
+
+def select_k_best_words(query: list[str], words, k=5):
     scores = []
-    q_num_words = len(query)
     # filter out words stop words
     words = [word for word in words if word not in stop_words]
-
-    if isinstance(query, list):
-        # filter out stop words
-        query = [word for word in query if word not in stop_words]
-        query = "subjects closely related to these key terms " + "[" + ", ".join(query) + "]"
+    # filter out stop words
+    query = [word for word in query if word not in stop_words]
+    query = "subjects that encapsulate these key terms: " + "[" + ", ".join(query) + "]"
     query_embedding = get_embedding(query)
     # if query is list, join it into a string
 
     for word in words:
         # Get embeddings
-        combined_embedding = get_embedding("subjects closely related to " + word)
+        combined_embedding = get_embedding("subjects that encapsulate this key term: " + word)
 
         # Calculate cosine similarity
         similarity_score = cosine_similarity(query_embedding, combined_embedding)

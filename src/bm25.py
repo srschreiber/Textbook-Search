@@ -8,11 +8,13 @@ from collections import Counter
 from math import log
 from typing import List, Tuple
 from query_expansion import WordExpansion
+
 from tokenizer import load_spacy_output
 from config import Config
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.stem import WordNetLemmatizer
 import string
+from transformer import get_similarity
 
 # stopwords
 import nltk
@@ -80,6 +82,7 @@ class BM25Ranker:
     
     
     def get_best_docs_for_query(self, query: str, top_n: int = 10, expand=True) -> List[Tuple[str, float]]:
+        original_query = query
         # Normalize the query
         query = self.__tokenize_string(query)
         expanded_terms = []
@@ -94,19 +97,10 @@ class BM25Ranker:
         pseudo_counts = 5
         for term, score in expanded_terms:
             # square the score to give more weight to the higher scores and lower weight to the lower scores
-            pseudo_count_score = log(score*score + 1) * pseudo_counts
-
-            term_weights[term] += pseudo_count_score
-        
-        if len(term_weights) > 0:
-            smallest_weight = min(term_weights.values())
-            to_add = max(1 - smallest_weight, 0)
-
-            for term in term_weights:
-                term_weights[term] += to_add
+            term_weights[term] += pseudo_counts
     
         
-        p = .8
+        p = .6
         # normalize so that original query takes up 70% of the weight
         total_expansion_weight = sum(term_weights.values())
         if total_expansion_weight >= pseudo_counts:
@@ -145,15 +139,20 @@ class BM25Ranker:
         doc_scores.sort(key=lambda x: x[1], reverse=True)
         
         # Return the top N documents and their scores
-        top_docs = []
-        for doc_id, score in doc_scores[:top_n]:
-            content = " ".join(self.windows[doc_id])  # Map the document index to the window content
-            top_docs.append((content, score))
+        top_docs = doc_scores[:top_n]
 
+        # capture original rankings (array position) because its interesting
+        original_rankings = {doc: i for i, (doc, _) in enumerate(top_docs)}
+
+        # now re-rank using the transformer
+        similarities = []
+
+        for doc, _ in top_docs:
+            content = " ".join(self.windows[doc])
+            similarities.append((doc, get_similarity(original_query, content), content, original_rankings[doc]))
         
-        all_in_order_of_id = sorted(doc_scores, key=lambda x: x[0])
-
-        print("All scores in order of document ID:")
+        # sort by similarity
+        top_docs = sorted(similarities, key=lambda x: x[1], reverse=True)
 
         
         return top_docs
@@ -174,13 +173,15 @@ def make_or_load_bm25() -> BM25Ranker:
 
 if __name__ == "__main__":
     bm25 = make_or_load_bm25()
-    query = "amphibian metamorphosis of frog thyroid hormone"
+    query = "squamous epithelia"
     ranked_sentences = bm25.get_best_docs_for_query(query, top_n=100, expand=True)
 
-    for i, (content, score) in enumerate(ranked_sentences):
-        print(f"Document {i + 1} with score {score}:")
+    rank = 0
+    for i, score, content, original_ranking in ranked_sentences:
+        print(f"Document {i + 1} rank={rank} bm25 rank={original_ranking} with score {score}:")
         print(content)
         print("=" * 80)
+        rank += 1
 
 
 """

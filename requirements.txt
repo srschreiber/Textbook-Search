@@ -8,3 +8,4 @@ nltk
 gensim
 numpy==1.23.5
 rank-bm25
+scikit-learn
