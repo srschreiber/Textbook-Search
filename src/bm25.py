@@ -31,8 +31,8 @@ stop_words = set(stopwords.words('english'))  # Load stop words
 class BM25Ranker:
     def __init__(self) -> None:
         self.WINDOWS_PATH = "data/windows.txt"
-        self.WINDOW_STEP = 2
-        self.WINDOW_SENTENCES = 3
+        self.WINDOW_STEP = 6
+        self.WINDOW_SENTENCES = 9
         self.cfg = Config()
         self.lemmatizer = WordNetLemmatizer()
         self.doc = load_spacy_output()
@@ -207,7 +207,7 @@ def make_or_load_bm25() -> BM25Ranker:
 
 if __name__ == "__main__":
     bm25 = make_or_load_bm25()
-    query = "how cells transport materials to and from the cell membrane"
+    query = "how dna mutations lead to malformed proteins"
 
     start_time = time.time()
     print(f"Querying BM25 for '{query}'...")
