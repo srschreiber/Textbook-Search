@@ -87,23 +87,23 @@ class BM25Ranker:
         query = self.__tokenize_string(query)
         expanded_terms = []
 
-        if expand:
+        # expansion isnt helpful if the query is short because they are likely looking for something specific
+        if expand and len(query) >= 3:
             expanded_terms.extend(self.we.expand_words(query))
                 
         # now weight the terms based on the expansion scores
         term_weights = Counter()
 
         
-        pseudo_counts = 5
         for term, score in expanded_terms:
             # square the score to give more weight to the higher scores and lower weight to the lower scores
-            term_weights[term] += pseudo_counts
+            term_weights[term] += 1
     
         
         p = .6
         # normalize so that original query takes up 70% of the weight
         total_expansion_weight = sum(term_weights.values())
-        if total_expansion_weight >= pseudo_counts:
+        if total_expansion_weight >= 1:
             num_base = len(query)
 
             """
@@ -173,7 +173,7 @@ def make_or_load_bm25() -> BM25Ranker:
 
 if __name__ == "__main__":
     bm25 = make_or_load_bm25()
-    query = "squamous epithelia"
+    query = "how a tadpole becomes a frog hormone changes"
     ranked_sentences = bm25.get_best_docs_for_query(query, top_n=100, expand=True)
 
     rank = 0

@@ -8,10 +8,11 @@ from collections import defaultdict
 import heapq
 from transformer import select_k_best_words
 import math
+from collections import deque
+
 
 nltk.download("wordnet")
 nltk.download("wordnet_ic")
-
 EXPAND_LIMIT = 20
 SIMILARITY_CUTOFF = 0.7
 class WordExpansion:
@@ -28,85 +29,123 @@ class WordExpansion:
             lemmas.add(self.wnl.lemmatize(word))
         return lemmas
 
-
     def __related_synsets(self, syn):
         related_words = set()
 
-        # Add direct synonyms
-        for lemma in syn.lemmas():
-            related_words.add(lemma.name())
+        # Get the POS tag of the original synset
+        original_pos = syn.pos()
 
-        # Add hyponyms (more specific terms)
-        for hypo in syn.hyponyms():
-            related_words.update(lemma.name() for lemma in hypo.lemmas())
+        def add_related_words(synset_list):
+            """Helper function to add related words if POS matches the original."""
+            for related_syn in synset_list:
+                if related_syn.pos() == original_pos:  
+                    for lemma in related_syn.lemmas():
+                        related_words.add(lemma.name())
 
-        # Add part meronyms (parts of the term)
-        for meronym in syn.part_meronyms():
-            related_words.update(lemma.name() for lemma in meronym.lemmas())
+        # Add direct synonyms (same POS)
+        add_related_words([syn])
 
-        # Add synonyms from similar terms
-        for similar in syn.similar_tos():
-            related_words.update(lemma.name() for lemma in similar.lemmas())
+        # Add hypernyms (only if POS matches)
+        add_related_words(syn.hypernyms())
 
-        # Add hypernyms (general terms)
-        for hyper in syn.hypernyms():
-            related_words.update(lemma.name() for lemma in hyper.lemmas())
+        # Add hyponyms (only if POS matches)
+        add_related_words(syn.hyponyms())
 
-        # Add member holonyms (whole of)
-        for holonym in syn.member_holonyms():
-            related_words.update(lemma.name() for lemma in holonym.lemmas())
+        # Add holonyms (only if POS matches)
+        add_related_words(syn.member_holonyms())
+
+        # Add meronyms (only if POS matches)
+        add_related_words(syn.member_meronyms())
 
         return related_words
 
     
-    def expand_words(self, query: list[str], max_distance: int = 2) -> List[Tuple[str, float]]:
+    def expand_words(self, query: list[str], max_distance: int = 5) -> List[Tuple[str, float]]:
 
         output = set()
+        processed = set()
+
+        # this sounds high but we will use a cache to quickly get the embeddings
+        MAX_NUMBER = 3000
+
+        """
+        n - NOUN
+        v - VERB
+        a - ADJECTIVE
+        r - ADVERB
+
+        We only want to expand nouns and verbs and penalize verbs more than nouns
+        """
+        pos_filter = ["n", "v"]
+        
+        pos_graph_weight = {
+            # prefer nouns, but verbs are ok but include only half of them
+            "n": 1,
+            "v": 2
+        }
+
+        # bias slightly towards nouns
+        pos_penalties = {
+            "n": 1,
+            "v": .95
+        }
+
         # explore synsets for each word in words
-        for word in query:            
+        for i, word in enumerate(query):            
             # Get the root word
             root_word = self.wnl.lemmatize(word)
             
-            queue = [(root_word, 1)]
-            processed = set([root_word])
+            queue = deque()
+            queue.append((root_word, 0))
 
 
             # Perform a BFS
-            while queue:
-                w, depth = queue.pop()
+            while queue and len(output) < MAX_NUMBER:
+                # pop left to process the closest words first for the true bfs experience
+                w, depth = queue.popleft()
 
-                if depth > max_distance:
+                if depth >= max_distance:
                     continue
+                
 
                 # Get the synsets for the word
-                synsets = wn.synsets(w)
+
+                synsets = []
+                for pos in pos_filter:
+                    synsets.extend(wn.synsets(w, pos=pos))
 
                 for synset in synsets:
+                    new_weight = depth + pos_graph_weight[synset.pos()]
+                    if new_weight > max_distance:
+                        continue
+                    
                     # Get the lemmas for the synset
                     if synset.lemmas():
                         lemmas = synset.lemmas()
                     else:
                         continue
 
+
                     # Filter out lemmas that are not in the vocab
                     lemmas = self.__related_synsets(synset)
 
                     for lemma in lemmas:
                         if lemma not in processed:
-                            if not self.we.has_word(lemma):
+                            if not self.we.has_word(lemma) or lemma in self.we.stop_words:
                                 continue
 
-                            # Calculate similarity if needed
-                            node = (lemma, depth + 1)
-                            output.add(lemma)
+                            node = (lemma, depth + new_weight)
+                            output.add((lemma, pos_penalties[synset.pos()]))
                             queue.append(node)
                             processed.add(lemma)
 
 
+        print(f"Finding best lemmas out of {len(output)} lemmas given query {query}")
         # find k best lemmas
-        best = select_k_best_words(query, list(output), EXPAND_LIMIT)
-        # cut off any words that are below the similarity cutoff
-        best = [(word, score) for word, score in best if score >= SIMILARITY_CUTOFF]
+        best = select_k_best_words(query, list(output), k=EXPAND_LIMIT)
+
+        # do penalties
+
         return best
     
     def get_expanded_query(self, query: str) -> dict[str, set[str]]:
