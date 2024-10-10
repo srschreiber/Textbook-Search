@@ -15,6 +15,9 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.stem import WordNetLemmatizer
 import string
 from transformer import get_similarity
+import threading
+import multiprocessing
+import time
 
 # stopwords
 import nltk
@@ -94,13 +97,10 @@ class BM25Ranker:
         # now weight the terms based on the expansion scores
         term_weights = Counter()
 
-        
-        for term, score in expanded_terms:
-            # square the score to give more weight to the higher scores and lower weight to the lower scores
+        for term, _ in expanded_terms:
             term_weights[term] += 1
-    
-        
-        p = .6
+
+        p = .5
         # normalize so that original query takes up 70% of the weight
         total_expansion_weight = sum(term_weights.values())
         if total_expansion_weight >= 1:
@@ -147,10 +147,29 @@ class BM25Ranker:
         # now re-rank using the transformer
         similarities = []
 
-        for doc, _ in top_docs:
-            content = " ".join(self.windows[doc])
-            similarities.append((doc, get_similarity(original_query, content), content, original_rankings[doc]))
+        NUM_THREADS = multiprocessing.cpu_count()
+        t_scores = [[] for _ in range(NUM_THREADS)]
+        threads = []
+
+        for i in range(NUM_THREADS):
+            batch = top_docs[i * len(top_docs) // NUM_THREADS:(i + 1) * len(top_docs) // NUM_THREADS]
+            def task(batch=batch, tid=i):
+                for doc, _ in batch:
+                    content = " ".join(self.windows[doc])
+                    similarity = get_similarity(original_query, content)
+                    t_scores[tid].append((doc, similarity, content, original_rankings[doc]))
+            thread = threading.Thread(target=task)
+            threads.append(thread)
         
+        for thread in threads:
+            thread.start()
+        
+        for thread in threads:
+            thread.join()
+        
+        for thread_score in t_scores:
+            similarities.extend(thread_score)
+
         # sort by similarity
         top_docs = sorted(similarities, key=lambda x: x[1], reverse=True)
 
@@ -174,14 +193,22 @@ def make_or_load_bm25() -> BM25Ranker:
 if __name__ == "__main__":
     bm25 = make_or_load_bm25()
     query = "how a tadpole becomes a frog hormone changes"
+
+    start_time = time.time()
+    print(f"Querying BM25 for '{query}'...")
     ranked_sentences = bm25.get_best_docs_for_query(query, top_n=100, expand=True)
 
+    end_time = time.time()
     rank = 0
     for i, score, content, original_ranking in ranked_sentences:
         print(f"Document {i + 1} rank={rank} bm25 rank={original_ranking} with score {score}:")
         print(content)
         print("=" * 80)
         rank += 1
+
+    print(f"Query took {end_time - start_time} seconds to compute top-{len(ranked_sentences)} documents")
+    
+    
 
 
 """

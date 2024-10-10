@@ -13,8 +13,7 @@ from collections import deque
 
 nltk.download("wordnet")
 nltk.download("wordnet_ic")
-EXPAND_LIMIT = 20
-SIMILARITY_CUTOFF = 0.7
+EXPAND_LIMIT = 15
 class WordExpansion:
     def __init__(self):
         self.wnl: WordNetLemmatizer = WordNetLemmatizer()
@@ -145,7 +144,6 @@ class WordExpansion:
         best = select_k_best_words(query, list(output), k=EXPAND_LIMIT)
 
         # do penalties
-
         return best
     
     def get_expanded_query(self, query: str) -> dict[str, set[str]]:
