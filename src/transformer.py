@@ -60,6 +60,7 @@ def select_k_best_words(query: list[str], words, k=5):
     words = [word for word in words if word[0] not in stop_words]
     # filter out stop words
     query = [word for word in query if word not in stop_words]
+    
     query = "biological subjects related to this phrase: " + " ".join(query)
     query_embedding = get_embedding(query)
     # if query is list, join it into a string

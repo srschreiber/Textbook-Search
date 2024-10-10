@@ -13,14 +13,14 @@ from collections import deque
 
 nltk.download("wordnet")
 nltk.download("wordnet_ic")
-EXPAND_LIMIT = 15
+stop_words = set(nltk.corpus.stopwords.words("english"))
+EXPAND_LIMIT = 20
 class WordExpansion:
-    def __init__(self):
+    def __init__(self, vocab: set) -> None:
         self.wnl: WordNetLemmatizer = WordNetLemmatizer()
         self.brown_ic = wordnet_ic.ic("ic-brown.dat")
-        self.cfg = Config()
-        self.we.load()
-        
+        self.cfg = Config()        
+        self.vocab = self.vocab_to_lemmas(vocab)
     
     def vocab_to_lemmas(self, vocab: set) -> set:
         lemmas = set()
@@ -130,7 +130,7 @@ class WordExpansion:
 
                     for lemma in lemmas:
                         if lemma not in processed:
-                            if not self.we.has_word(lemma) or lemma in self.we.stop_words:
+                            if lemma in stop_words or lemma not in self.vocab:
                                 continue
 
                             node = (lemma, depth + new_weight)
@@ -148,7 +148,7 @@ class WordExpansion:
     
     def get_expanded_query(self, query: str) -> dict[str, set[str]]:
         # remove stopwords first
-        removed_stopwords = [word for word in query.split() if word not in self.we.stop_words]
+        removed_stopwords = [word for word in query.split() if word not in stop_words]
 
         expanded_query = defaultdict(set[str])
         for word in removed_stopwords:

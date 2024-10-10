@@ -31,12 +31,20 @@ stop_words = set(stopwords.words('english'))  # Load stop words
 class BM25Ranker:
     def __init__(self) -> None:
         self.WINDOWS_PATH = "data/windows.txt"
-        self.WINDOW_STEP = 3
-        self.WINDOW_SENTENCES = 4
+        self.WINDOW_STEP = 2
+        self.WINDOW_SENTENCES = 3
         self.cfg = Config()
         self.lemmatizer = WordNetLemmatizer()
         self.doc = load_spacy_output()
-        self.we = WordExpansion()
+        self.vocab = set()
+
+        # load the vocab
+        with open(self.cfg.VOCAB_PATH, "r") as file:
+            for line in file:
+                self.vocab.add(self.lemmatizer.lemmatize(line.strip()))
+        
+
+        self.we = WordExpansion(self.vocab)
         self.bm25: BM25Okapi = self.get_bm25()
 
     def get_bm25(self) -> BM25Okapi:    
@@ -69,22 +77,17 @@ class BM25Ranker:
         
         for i in range(0, number_sentences, self.WINDOW_STEP):
             window_sents = [sent.text for sent in list(self.doc.sents)[i:i+self.WINDOW_SENTENCES]]
-            window = " ".join(window_sents)
-
-            # Remove punctuation
-            window = window.translate(str.maketrans('', '', string.punctuation))
-
-            
-            # Tokenize and keep only alphanumeric tokens
+            window = " ".join(window_sents) 
+            # remove newlines
+            window = window.replace("\n", " ")
+            window = " ".join(window.split())
             tokens = self.__tokenize_string(window)
             # get lemmas for each word
-            filtered_tokens = [word for word in tokens if word.isalnum()]
-
-            windows.append(filtered_tokens)
+            windows.append(tokens)
         return windows
     
     
-    def get_best_docs_for_query(self, query: str, top_n: int = 10, expand=True) -> List[Tuple[str, float]]:
+    def get_best_docs_for_query(self, query: str, top_bm25: int = 10, top_out: int = 10, expand=True) -> List[Tuple[str, float]]:
         original_query = query
         # Normalize the query
         query = self.__tokenize_string(query)
@@ -139,7 +142,8 @@ class BM25Ranker:
         doc_scores.sort(key=lambda x: x[1], reverse=True)
         
         # Return the top N documents and their scores
-        top_docs = doc_scores[:top_n]
+        # take a extra because we are going to re-rank them
+        top_docs = doc_scores[:top_bm25*2]
 
         # capture original rankings (array position) because its interesting
         original_rankings = {doc: i for i, (doc, _) in enumerate(top_docs)}
@@ -172,6 +176,17 @@ class BM25Ranker:
 
         # sort by similarity
         top_docs = sorted(similarities, key=lambda x: x[1], reverse=True)
+        
+        top_docs_with_harmonic_mean = []
+
+        for rank, (doc, score, content, original_ranking) in enumerate(top_docs):
+            # compute harmonic mean of the two scores
+            hm = 2 * (rank+1) * (original_ranking+1) / ((rank+1) + (original_ranking+1))
+            top_docs_with_harmonic_mean.append((doc, score, content, original_ranking,rank, hm))
+        
+        # finally sort by the harmonic mean
+        top_docs = sorted(top_docs_with_harmonic_mean, key=lambda x: x[5])[:top_out]
+
 
         
         return top_docs
@@ -192,16 +207,17 @@ def make_or_load_bm25() -> BM25Ranker:
 
 if __name__ == "__main__":
     bm25 = make_or_load_bm25()
-    query = "how a tadpole becomes a frog hormone changes"
+    query = "how cells transport materials to and from the cell membrane"
 
     start_time = time.time()
     print(f"Querying BM25 for '{query}'...")
-    ranked_sentences = bm25.get_best_docs_for_query(query, top_n=100, expand=True)
+    # consider 300 bm25 results to rerank to top 20
+    ranked_sentences = bm25.get_best_docs_for_query(query, top_bm25=300, top_out=20, expand=True)
 
     end_time = time.time()
     rank = 0
-    for i, score, content, original_ranking in ranked_sentences:
-        print(f"Document {i + 1} rank={rank} bm25 rank={original_ranking} with score {score}:")
+    for i, score, content, original_ranking, transformer_rank, harmonic_mean in ranked_sentences:
+        print(f"Document {i + 1} rank={rank}, harmonic_mean={harmonic_mean},  bm25 rank={original_ranking},transformer_rank={transformer_rank} with score {score}:")
         print(content)
         print("=" * 80)
         rank += 1
