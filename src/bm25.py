@@ -31,8 +31,8 @@ stop_words = set(stopwords.words('english'))  # Load stop words
 class BM25Ranker:
     def __init__(self) -> None:
         self.WINDOWS_PATH = "data/windows.txt"
-        self.WINDOW_STEP = 6
-        self.WINDOW_SENTENCES = 9
+        self.WINDOW_STEP = 2
+        self.WINDOW_SENTENCES = 5
         self.cfg = Config()
         self.lemmatizer = WordNetLemmatizer()
         self.doc = load_spacy_output()
@@ -77,9 +77,9 @@ class BM25Ranker:
         
         for i in range(0, number_sentences, self.WINDOW_STEP):
             window_sents = [sent.text for sent in list(self.doc.sents)[i:i+self.WINDOW_SENTENCES]]
-            window = " ".join(window_sents) 
+            window = "".join(window_sents) 
             # remove newlines
-            window = window.replace("\n", " ")
+            window = window.replace("\n", "")
             window = " ".join(window.split())
             tokens = self.__tokenize_string(window)
             # get lemmas for each word
