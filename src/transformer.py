@@ -21,11 +21,7 @@ model = AutoModel.from_pretrained(model_name)
 
 # Function to get embeddings
 def get_embedding(text):
-    inputs = tokenizer(text, return_tensors="pt")
-    # if dimension exceeds 512, truncate it. This is a limitation of the model but sliding overlapping windows might make this less of an issue
-    if inputs["input_ids"].shape[1] > 512:
-        inputs["input_ids"] = inputs["input_ids"][:, :512]
-        inputs["attention_mask"] = inputs["attention_mask"][:, :512]
+    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=1024)
     with torch.no_grad():
         outputs = model(**inputs)
     # Return the mean of the last hidden states as the embedding
