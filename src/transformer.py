@@ -21,7 +21,7 @@ model = AutoModel.from_pretrained(model_name)
 
 # Function to get embeddings
 def get_embedding(text):
-    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=1024)
+    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=512)
     with torch.no_grad():
         outputs = model(**inputs)
     # Return the mean of the last hidden states as the embedding
