@@ -77,15 +77,7 @@ class BM25Ranker:
         
         for i in range(0, number_sentences, self.WINDOW_STEP):
             window_sents = [sent.text for sent in list(self.doc.sents)[i:i+self.WINDOW_SENTENCES]]
-            # make sure every sentence ends with a period
-            for i, sent in enumerate(window_sents):
-                if not sent.endswith("."):
-                    window_sents[i] = sent + "."
-            # if sentence starts with . remove it
-            for i, sent in enumerate(window_sents):
-                if sent.startswith("."):
-                    window_sents[i] = sent[1:]
-            window = "".join(window_sents) 
+            window = " ".join(window_sents) 
             # remove newlines
             window = window.replace("\n", "")
             window = " ".join(window.split())
