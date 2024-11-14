@@ -11,6 +11,7 @@ class Index():
         self.output_path = output_path
         self.tokenizer = tokenizer
         self.INPUT_PATH = "data/index_inputs/bm25.json"
+        _, self.original_sentences = self.tokenizer.load_sentences() 
     
     def get_original_sentence(self, doc_id):
         return self.tokenizer.get_original_sentence(doc_id)

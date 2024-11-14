@@ -102,4 +102,38 @@ class FaissIndex(Index):
         faiss.write_index(index, self.index_path)
         return index
 
+    def search(self, query, top_k=10):
+        index = self.get_index()
+        query_embedding = self.embed_query(query)
+        return index.search(query_embedding, top_k)
 
+    # this is to rank a subset of documents
+    def rank_doc_ids(self, query, doc_ids):
+        # find the rankings of each doc_id
+        index = self.get_index()
+        query_embedding = self.embed_query(query)
+
+        # create a temporary index with the right doc_ids and then query it
+        temp_index = faiss.IndexFlatIP(index.d)
+
+        embeddings = []
+        for doc_id in doc_ids:
+            # look up the embedding for the doc_id
+            embedding = index.reconstruct(doc_id)
+            embeddings.append(embedding)
+        # stack embeddings to 2d array size len(doc_ids) x d
+        embeddings = np.vstack(embeddings)
+        temp_index.add(embeddings)
+        
+        hits = temp_index.search(query_embedding, len(doc_ids))
+        
+        reranked = [0] * len(doc_ids)
+        ranks = hits[1].squeeze().tolist()
+        scores = hits[0].squeeze().tolist()
+
+        for i, (doc_id, score) in enumerate(zip(ranks, scores)):
+            original_doc_id = doc_ids[doc_id]
+            reranked[i] = (original_doc_id, score)
+            
+        return reranked
+        
