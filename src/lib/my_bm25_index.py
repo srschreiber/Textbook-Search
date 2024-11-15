@@ -1,6 +1,4 @@
 from lib.base_index import Index
-from pyserini.search.lucene import querybuilder
-from collections import Counter
 from pyserini.search.lucene import LuceneSearcher
 
 class BM25Index(Index):
