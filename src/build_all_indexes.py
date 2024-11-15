@@ -75,10 +75,13 @@ if __name__ == "__main__":
         # Now compute the harmonic mean of each document
         hmean = {}
         for doc_id in doc_ids_to_rerank:
-            sensitivity_constant = 10
-            p = (bm25_ranking[doc_id] + sensitivity_constant) / (len(doc_ids_to_rerank) + sensitivity_constant)
-            r = (faiss_ranking[doc_id] + sensitivity_constant) / (len(doc_ids_to_rerank) + sensitivity_constant)
-            hmean[doc_id] = harmonic_mean_with_beta(p, r)
+            # Make sure faiss is more sensitive to lower ranks than bm25
+            sensitivity_constant_faiss = len(doc_ids_to_rerank)//10
+            sensitivity_constant_bm25 = len(doc_ids_to_rerank)//3
+            p = (bm25_ranking[doc_id] + sensitivity_constant_bm25) / (len(doc_ids_to_rerank) + sensitivity_constant_bm25)
+            r = (faiss_ranking[doc_id] + sensitivity_constant_faiss) / (len(doc_ids_to_rerank) + sensitivity_constant_faiss)
+            # beta of 2 gives more weight to recall
+            hmean[doc_id] = harmonic_mean_with_beta(p, r, beta=2)
         
         # sort by harmonic mean
         sorted_docs = sorted(hmean.keys(), key=lambda x: hmean[x], reverse=False)
