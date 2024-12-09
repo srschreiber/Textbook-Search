@@ -102,6 +102,36 @@ def compute_ndcg(results, qrels, k=10):
         return 0.0
     return np.mean(ndcg_scores)
 
+def compute_mean_average_precision(results, qrels, k=10):
+    average_precision_scores = []
+    
+    for qid, query_results in results.items():
+        if qid not in qrels:
+            continue
+        
+        relevant_docs = qrels[qid]
+        hits = 0
+        precision_at_k = []
+
+        for i, (_, docid) in enumerate(query_results):
+            if i >= k:
+                break
+            
+            if docid in relevant_docs:
+                hits += 1
+                precision_at_k.append(hits / (i + 1))
+        
+        if precision_at_k:  # Avoid division by zero
+            average_precision = sum(precision_at_k) / len(relevant_docs)
+            average_precision_scores.append(average_precision)
+        else:
+            average_precision_scores.append(0)
+    
+    if average_precision_scores:
+        return np.array(average_precision_scores).mean()
+    else:
+        return 0
+
 if __name__ == "__main__":
     config = Config()
     # cranfield mode will evaluate ndcg over the cranfield dataset to help test the parameters,
@@ -138,7 +168,7 @@ if __name__ == "__main__":
     # compute ndcg if cranfield
     if mode == "cranfield":
         knowledge_level = 0
-        queries_path = config.CRANFIELD_QUERIES_LESS_SPECIFIC_PATH
+        queries_path = config.CRANFIELD_QUERIES_PATH
         qrels = {}
         with open(config.CRANFIELD_QREL_PATH) as file:
             for line in file:
@@ -151,12 +181,12 @@ if __name__ == "__main__":
                 qrels[qid][docid] = relevance
 
         results = {}
-        top_k = 20
+        top_k = 10
         with open(queries_path) as file:
             qid = query_start_id
             for line in file:
                 query = line.strip()
-                sorted_docs, bm25_ranking, faiss_ranking, hmean = search_top_k(index, faiss_index, query, top_k=top_k, initial_search_k=1000, dont_rerank=True, score_function=score_function_map[knowledge_level])
+                sorted_docs, bm25_ranking, faiss_ranking, hmean = search_top_k(index, faiss_index, query, top_k=top_k, initial_search_k=1000, dont_rerank=False, score_function=score_function_map[knowledge_level])
                 results[qid] = [(qid, doc) for doc in sorted_docs]
                 qid += 1
         # queries short result hybrid: .389
@@ -166,7 +196,9 @@ if __name__ == "__main__":
 
         # Note: I started off using a harmonic mean, but switched to a geometric mean because the ndcg was much better
         ndcg = compute_ndcg(results, qrels, k=top_k)
-        print(f"Computed NDCG: {ndcg}")
+        print(f"Computed NDCG@{top_k}: {ndcg}")
+        map_at_k = compute_mean_average_precision(results, qrels, k=top_k)
+        print(f"Computed MAP@{top_k}: {map_at_k}")
     else:
         
         welcome_text = "Welcome to the BM25 + Faiss search demo! \n"\
