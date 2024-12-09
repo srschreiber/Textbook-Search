@@ -4,7 +4,7 @@
 Modern e-books often rely on keyword-matching search to help readers locate topics within the text. While effective for experts or users with precise knowledge, this method falls short for users with only a general understanding. For instance, a first-year Molecular Biology student might search for "cell membrane" but not find relevant sections because the text refers to the "plasma membrane" instead.
 
 ## Proposed Solution
-This project aims to enhance e-book search by combining a keyword-based approach with a semantic-based approach to provide a more balanced search result. 
+This project aims to enhance e-book search by combining a keyword-based approach with an embedding/bm25 hybrid approach to provide a more balanced search result. The goal is the best results are ones that have both strong keyword matching and semantic relavance.
 
 The high-level approach is:
 
@@ -29,11 +29,6 @@ Where
 In this case, a smaller score would represent a more relevant document. I decided to use a geometric mean because it has the property of selecting documents that perform very well across either BM25 or FAISS, in comparison to a regular average which would score the document poorly if any of the ranks were exceptionally poor.
 
 Another candidate I considered was the harmonic mean. In practice, this tended to be too sensitive to low ranks, selecting documents that had a decent score in one area but an exceptionally high score in another. The geometric mean provided more of a balanced metric, and generated better results in evaluation over a small dataset using nDCG.
-
-## Evaluation
-The hybrid search was evaluated against a document from the Cranfield dataset using nDCG, using BM25 with Rocchio feedback as a baseline. The evaluation is not meant to be comprehensive, but is instead meant to highlight the key characteristics of this hybrid approach. You can find the Cranfield data under data/cranfield/cranfield.txt.
-
-using nDCG.
 
 ## Evaluation
 The hybrid search was evaluated against a document from the Cranfield dataset using nDCG, using BM25 with Rocchio feedback as a baseline. The evaluation is not meant to be comprehensive, but is instead meant to highlight the key characteristics of this hybrid approach. You can find the Cranfield data under data/cranfield/cranfield.txt.
