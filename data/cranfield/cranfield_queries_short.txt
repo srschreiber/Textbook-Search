@@ -1,0 +1,10 @@
+what similarity laws must be obeyed when constructing aeroelastic models of heated high speed aircraft .
+what are the structural and aeroelastic problems associated with flight of high speed aircraft .
+what problems of heat conduction in composite slabs have been solved so far .
+can a criterion be developed to show empirically the validity of flow solutions for chemically reacting gas mixtures based on the simplifying assumption of instantaneous local chemical equilibrium .
+what chemical kinetic system is applicable to hypersonic aerodynamic problems .
+what theoretical and experimental guides do we have as to turbulent couette flow behaviour .
+is it possible to relate the available pressure distributions for an ogive forebody at zero angle of attack to the lower surface pressures of an equivalent ogive forebody at angle of attack .
+what methods -dash exact or approximate -dash are presently available for predicting body pressures at angle of attack.
+papers on internal /slip flow/ heat transfer studies .
+are real-gas transport properties for air available over a wide range of enthalpies and densities .

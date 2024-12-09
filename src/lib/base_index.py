@@ -6,21 +6,21 @@ import json
 
 
 class Index():
-    def __init__(self, index_path, output_path, tokenizer: Tokenizer):
+    def __init__(self, index_path, index_input, tokenizer: Tokenizer):
         self.index_path = index_path
-        self.output_path = output_path
         self.tokenizer = tokenizer
-        self.INPUT_PATH = "data/index_inputs/bm25.json"
-        _, self.original_sentences = self.tokenizer.load_sentences() 
-    
-    def get_original_sentence(self, doc_id):
-        return self.tokenizer.get_original_sentence(doc_id)
+        self.INPUT_PATH = index_input   
     
     # first, read the lemmatized sentences, write as json to the INPUT_PATH
     def prepare_index_inputs(self):
         if os.path.exists(self.INPUT_PATH):
+            
             return
         os.makedirs(os.path.dirname(self.INPUT_PATH), exist_ok=True)
+
+        # first, build the windows
+        self.tokenizer.build_windows(True)
+
         sentences, _ = self.tokenizer.load_sentences()
         i = 0
         with open(self.INPUT_PATH, "w") as file:

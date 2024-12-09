@@ -1,0 +1,10 @@
+What is important when constructing models of really fast airplanes?
+What are the challenges in the design of fast plane?
+What are the solutions to heat conduction issues in combined materials?
+Can a method be developed to validate flow models for reacting gas?
+What chemical systems are used for fast aero dynamic studies?
+What research is there on turbulent fluid flow?
+Can pressure for different body shapes be compared?
+What methods are used to predict pressure on objects moving through air?
+Research on heat transfer and fluid flow.
+Are transport parameters for gases available across different conditions?

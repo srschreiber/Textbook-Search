@@ -2,8 +2,8 @@ from lib.base_index import Index
 from pyserini.search.lucene import LuceneSearcher
 
 class BM25Index(Index):
-    def __init__(self, index_dir, output_dir, tokenizer):
-        super().__init__(index_dir, output_dir, tokenizer)
+    def __init__(self, index_dir, index_input, tokenizer):
+        super().__init__(index_dir, index_input, tokenizer)
     
     def search(self, query, top_k=10):
         # search with BM25

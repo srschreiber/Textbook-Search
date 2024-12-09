@@ -19,8 +19,8 @@ tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
 encoder = AutoModel.from_pretrained('bert-base-uncased')
 
 class FaissIndex(Index):
-    def __init__(self, index_path, output_path, tokenizer):
-        super().__init__(index_path, output_path, tokenizer)
+    def __init__(self, index_path, tokenizer):
+        super().__init__(index_path, "", tokenizer)
     
     def get_index(self, rebuild=False):
         if not os.path.exists(self.index_path) or rebuild:
