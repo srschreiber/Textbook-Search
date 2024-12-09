@@ -22,7 +22,7 @@ def harmonic_mean_with_beta(p, r, beta=1, sensitivity_constant=.4):
 def geometric_mean(values, weights):
     values = np.array(values, dtype=np.float64)
     weights = np.array(weights)
-    return np.prod(values ** weights) ** (1 / len(values))
+    return np.prod(values ** (weights / np.sum(weights)))
 
 def format_sentence(sentence: str):
     line_length = 100
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     # compute ndcg if cranfield
     if mode == "cranfield":
         knowledge_level = 0
-        queries_path = config.CRANFIELD_QUERIES_PATH
+        queries_path = config.CRANFIELD_QUERIES_LESS_SPECIFIC_PATH
         qrels = {}
         with open(config.CRANFIELD_QREL_PATH) as file:
             for line in file:
@@ -189,10 +189,6 @@ if __name__ == "__main__":
                 sorted_docs, bm25_ranking, faiss_ranking, hmean = search_top_k(index, faiss_index, query, top_k=top_k, initial_search_k=1000, dont_rerank=False, score_function=score_function_map[knowledge_level])
                 results[qid] = [(qid, doc) for doc in sorted_docs]
                 qid += 1
-        # queries short result hybrid: .389
-        # queries short result bm25:   .437        
-        # hybrid short less specific:  .154
-        # queries bm25 short but less specific: .132
 
         # Note: I started off using a harmonic mean, but switched to a geometric mean because the ndcg was much better
         ndcg = compute_ndcg(results, qrels, k=top_k)

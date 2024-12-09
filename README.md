@@ -21,10 +21,10 @@ The high-level approach is:
 ### Why Use Geometric Mean Between the Two Sets of Rankings?
 For scoring a document, I use a weighted geometric mean between the BM25 rank and the FAISS rank. The scoring function we use is:
 
-$\text{score(D)}_\text{geom} = [\prod_{i=0}^{N} x_i]^{\frac{1}{N}}$
+![Geometric Mean Explanation](img/geom_mean.png)
 
 Where
-$x = [{\text{BM25Rank}(D),\text{FAISSRank}}(D)]$
+![Geom Mean Part 2](img/geom_mean_part2.png)
 
 In this case, a smaller score would represent a more relevant document. I decided to use a geometric mean because it has the property of selecting documents that perform very well across either BM25 or FAISS, in comparison to a regular average which would score the document poorly if any of the ranks were exceptionally poor.
 
@@ -53,7 +53,7 @@ The hybrid search was evaluated against a document from the Cranfield dataset us
 ### Evaluation Results over 10 Queries with Weak Keywords
 | Metric          | BM25 + Rocchio | Hybrid Search |
 |-----------------|----------------|---------------|
-| nDCG@10         | <span style="color:red">0.13208</span>        | <span style="color:green">0.15430 (+16.82%)</span>       |
+| nDCG@10         | <span style="color:red">0.13208</span>        | <span style="color:green">0.15552 (+17.74%)</span>       |
 | MAP@10          | <span style="color:red">0.07531</span>        | <span style="color:green">0.076 (+0.92%)</span>         |
 
 ### Summary of Results
@@ -96,3 +96,4 @@ More information needs to be collected to determine the best way to weight the g
 
 ### Learned Parameter Tuning
 If the Hybrid approach is really better suited for more poorly defined queries, perhaps we can learn how "knowledgeable" a user is about a specific topic through data-mining and analyzing the query itself, and use that to set the geometric mean's weightings. If a user is extremely knowledgeable or provides a very good query, FAISS may not help nearly as much as BM25 for example.
+
