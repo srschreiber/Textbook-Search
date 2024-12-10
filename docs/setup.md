@@ -2,6 +2,7 @@
 # Setup Guide
 
 Note, please use Java 21: https://www.oracle.com/java/technologies/downloads/?er=221886#jdk21-mac
+Also, I used Miniforge to install conda.
 ## Setting Up Your Conda Environment
 ```
 conda create -n e-book-search-dev python=3.10
