@@ -1,5 +1,5 @@
 # Evaluation Results
-The hybrid search was evaluated against a document from the Cranfield dataset using nDCG, using BM25 with Rocchio feedback as a baseline. The evaluation is not meant to be comprehensive, but is instead meant to highlight the key characteristics of this hybrid approach. You can find the Cranfield data under data/cranfield/cranfield.txt.
+The hybrid search was evaluated against a document from the Cranfield dataset using nDCG, using BM25 with Rocchio feedback as a baseline. The evaluation is not meant to be comprehensive, but is instead meant to highlight the key characteristics of this hybrid approach. You can find the Cranfield data under data/cranfield/cranfield.txt. For the FAISS index, bert-base-uncased was used as the embedding model.
 
 ## Evaluation Results over Single Cranfield Document
 | Metric          | BM25 + Rocchio | Hybrid Search |
