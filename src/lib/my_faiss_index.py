@@ -1,7 +1,7 @@
 from lib.base_index import Index
 import os
 import json
-from tqdm import tqdm
+from tqdm import tqdm 
 # pip install pyserini
 from pyserini.search.lucene import LuceneSearcher
 from transformers import AutoTokenizer, AutoModel
@@ -13,7 +13,6 @@ from tqdm import tqdm
 from lib.tokenizer import Tokenizer
 import numpy as np
 import subprocess
-from sklearn.preprocessing import normalize
 
 tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
 encoder = AutoModel.from_pretrained('bert-base-uncased')
