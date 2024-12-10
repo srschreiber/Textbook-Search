@@ -9,6 +9,7 @@
 - [Setup Instructions](docs/setup.md)
 - [Evaluation Results](docs/eval_results.md)
 - [TextData Community (with invite only)](https://textdata.org/submissions/672398fc3d35dbf48754516c)
+- [Presentation Link (mediaspace.illinois.edu)](https://mediaspace.illinois.edu/media/t/1_qpwztr70)
 
 ## Problem Statement
 Modern e-books often rely on keyword-matching search to help readers locate topics within the text. While effective for experts or users with precise knowledge, this method falls short for users with only a general understanding. For instance, a first-year Molecular Biology student might search for "cell membrane" but not find relevant sections because the text refers to the "plasma membrane" instead.
