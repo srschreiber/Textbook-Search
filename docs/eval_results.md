@@ -50,4 +50,4 @@ This reinforces my theory that BM25 + Rocchio performs better with well-defined 
 ## Limitations with Evaluation
 - We evaluated over a single document from the Cranfield dataset
 - For the less specific queries, we only evaluated over a small set of 10 queries
-- Cranfield documents can be too long for FAISS to accurately capture, thus underestimating the performance of the Hybrid model. It would be better for us to break each document up into smaller chunks and re-evaluate, which I hypothesize would yield much better results in favor of the Hybrid model.
+- Cranfield documents might be too long for FAISS to accurately capture, thus underestimating the performance of the Hybrid model. It would be better for us to break each document up into smaller chunks and re-evaluate, which I hypothesize would yield much better results in favor of the Hybrid model.

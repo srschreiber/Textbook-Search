@@ -1,6 +1,2 @@
 # ignore venv
-searchproj2
 __pycache__
-*.model
-index_inputs
-cranfield_index_inputs

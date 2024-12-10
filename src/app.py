@@ -2,7 +2,6 @@ from lib.my_bm25_index import BM25Index
 from config import Config
 from lib.tokenizer import Tokenizer
 from lib.my_faiss_index import FaissIndex
-import math
 import numpy as np
 
 def harmonic_mean_with_beta(p, r, beta=1, sensitivity_constant=.4):
@@ -53,7 +52,8 @@ def search_top_k(index, faiss_index, query, top_k=10, initial_search_k=1000, don
     bm25_ranking = {}
     for i, hit in enumerate(hits):
         doc_id = int(hit.docid)
-        bm25_ranking[doc_id] = i
+        # make sure that a score of 0 bm25 rank versus 0 faiss goes in the favor of faiss
+        bm25_ranking[doc_id] = i + .0000001
 
     if dont_rerank:
         return doc_ids_to_rerank[:top_k], bm25_ranking, None, None
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         tokenizer = Tokenizer(config.TEXT_PATH)
         index = BM25Index(config.BM25_MODEL_PATH, config.DEFAULT_BM25_INDEX_INPUT, tokenizer)
         faiss_index = FaissIndex(config.FAISS_MODEL_PATH, tokenizer)
-        index.build_index()
+        index.build_index(windows_are_lines=False)
         faiss_index.build_index()
         _, original_sentences = tokenizer.load_sentences()
     else:
@@ -168,7 +168,7 @@ if __name__ == "__main__":
         tokenizer = Tokenizer(config.CRANFIELD_PATH, config.CRANFIELD_SENTENCES_PATH, config.CRANFIELD_LEMMATIZED_SENTENCES_PATH, config.CRANFIELD_SPACY_OUT)
         index = BM25Index(config.BM25_CRANFIELD_MODELS_PATH, config.CRANFIELD_BM25_INDEX_INPUT, tokenizer)
         faiss_index = FaissIndex(config.FAISS_CRANFIELD_MODELS_PATH, tokenizer)
-        index.build_index()
+        index.build_index(windows_are_lines=True)
         faiss_index.build_index()
         _, original_sentences = tokenizer.load_sentences()
 
@@ -244,7 +244,7 @@ if __name__ == "__main__":
                 formatted_sentence = format_sentence(sentence)
                 # make formatted_sentence blue
                 formatted_sentence = f"\033[94m{formatted_sentence}\033[0m"
-                header = f"DOC {doc_id}, score: {score}, bm25 rank: {bm25_rank}, embedding rank: {embedding_rank}"
+                header = f"DOC {doc_id}, score: {score}, bm25 rank: {round(bm25_rank)}, embedding rank: {embedding_rank}"
                 # make header red
                 header = f"\033[91m{header}\033[0m"
                 print(f"{header}\n{formatted_sentence}\n\n")

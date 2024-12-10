@@ -12,14 +12,14 @@ class Index():
         self.INPUT_PATH = index_input   
     
     # first, read the lemmatized sentences, write as json to the INPUT_PATH
-    def prepare_index_inputs(self):
+    def prepare_index_inputs(self, windows_are_lines=False):
         if os.path.exists(self.INPUT_PATH):
             
             return
         os.makedirs(os.path.dirname(self.INPUT_PATH), exist_ok=True)
 
         # first, build the windows
-        self.tokenizer.build_windows(True)
+        self.tokenizer.build_windows(windows_are_lines)
 
         sentences, _ = self.tokenizer.load_sentences()
         i = 0
@@ -28,12 +28,12 @@ class Index():
                 file.write(json.dumps({"id": i, "contents": sentence}) + "\n")
                 i += 1
     
-    def build_index(self):
+    def build_index(self, windows_are_lines=False):
         if os.path.exists(self.index_path):
             print(f"Index already exists at {self.index_path}. Skipping index building.")
             return
         
-        self.prepare_index_inputs()
+        self.prepare_index_inputs(windows_are_lines)
 
         cmd = [
             "python", "-m", "pyserini.index.lucene",
