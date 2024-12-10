@@ -1,5 +1,10 @@
 # Better E-Book Searching
 
+## Presentation
+
+[![Watch the video](https://img.youtube.com/vi/ci3vlpQ8z7E/maxresdefault.jpg)](https://youtu.be/ci3vlpQ8z7E)
+
+
 ## Links
 - [Setup Instructions](docs/setup.md)
 - [Evaluation Results](docs/eval_results.md)
