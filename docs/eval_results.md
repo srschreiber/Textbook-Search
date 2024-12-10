@@ -46,3 +46,8 @@ For nDCG@10 over this small dataset, the Hybrid model performed substantially be
 In contrast, the small set of queries before alteration had BM25 + Rocchio model performing better across all metrics. 
 
 This reinforces my theory that BM25 + Rocchio performs better with well-defined queries, while the Hybrid approach may be better suited for less well-defined queries.
+
+## Limitations with Evaluation
+- We evaluated over a single document from the Cranfield dataset
+- For the less specific queries, we only evaluated over a small set of 10 queries
+- Cranfield documents can be too long for FAISS to accurately capture, thus underestimating the performance of the Hybrid model. It would be better for us to break each document up into smaller chunks and re-evaluate, which I hypothesize would yield much better results in favor of the Hybrid model.
