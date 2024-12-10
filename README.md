@@ -8,7 +8,6 @@
 ## Links
 - [Setup Instructions](docs/setup.md)
 - [Evaluation Results](docs/eval_results.md)
-- [Example Query Results](docs/query_results.md)
 - [TextData Community (with invite only)](https://textdata.org/submissions/672398fc3d35dbf48754516c)
 
 ## Problem Statement
