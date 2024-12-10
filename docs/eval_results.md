@@ -46,17 +46,3 @@ For nDCG@10 over this small dataset, the Hybrid model performed substantially be
 In contrast, the small set of queries before alteration had BM25 + Rocchio model performing better across all metrics. 
 
 This reinforces my theory that BM25 + Rocchio performs better with well-defined queries, while the Hybrid approach may be better suited for less well-defined queries.
-
-## Future Work
-
-### More Thorough Evaluation Metrics
-While the toy datasets yielded promising results, evaluation over much larger datasets is necessary to determine when the Hybrid approach is better. 
-
-One example of a large dataset to potentially test on is TREC Robust. This dataset contains poorly or ambiguously defined queries, which should be an ideal use-case for our Hybrid model.
-
-### Parameter Tuning
-More information needs to be collected to determine the best way to weight the geometric mean between BM25 + Rocchio versus FAISS
-
-### Learned Parameter Tuning
-If the Hybrid approach is really better suited for more poorly defined queries, perhaps we can learn how "knowledgeable" a user is about a specific topic through data-mining and analyzing the query itself, and use that to set the geometric mean's weightings. If a user is extremely knowledgeable or provides a very good query, FAISS may not help nearly as much as BM25 for example.
-
