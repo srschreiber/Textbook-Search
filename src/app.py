@@ -138,7 +138,8 @@ if __name__ == "__main__":
     # although cranfield is much better tailored to the bm25 model with strong
     mode = "cranfield"
 
-    print("Welcome to the BM25 + Faiss search demo! The first time you run this program it will take a few minutes index the dataset, but subsequent runs will be much faster.")
+    print("Welcome to the BM25 + Faiss search demo!")
+    print("It takes a couple hours to index the files in this project from scratch, so I have pre-processed the model files for you in this submission.")
     mode_str = input("Would you like to run in model evaluation mode? (n for the main program) (y/n): ").lower()
     if mode_str == "y":
         mode = "cranfield"
