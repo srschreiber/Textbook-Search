@@ -47,5 +47,5 @@ One example of a large dataset to potentially test on is TREC Robust. This datas
 More information needs to be collected to determine the best way to weight the geometric mean between BM25 + Rocchio versus FAISS
 
 ### Learned Parameter Tuning
-If the Hybrid approach is really better suited for more poorly defined queries, perhaps we can learn how "knowledgeable" a user is about a specific topic through data-mining and analyzing the query itself, and use that to set the geometric mean's weightings. If a user is extremely knowledgeable or provides a very good query, FAISS may not help nearly as much as BM25 for example.
+If the Hybrid approach is really better suited for poorly defined queries (or queries that do not use the same vocabulary as the source text), perhaps we can learn how "knowledgeable" a user is about a specific topic through data-mining and analyzing the query itself, and use that to set the geometric mean's weightings. If a user is extremely knowledgeable or provides a very good query, FAISS may not help nearly as much as BM25 for example.
 
