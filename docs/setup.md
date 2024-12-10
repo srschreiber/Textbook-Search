@@ -39,8 +39,9 @@ pip install numpy==1.23.5
 ## Running the Program
 Run app.py to start the program.
 
-You can change the variabler `mode` to cranfield or default to run the program in different modes.
+When the app is running, you will be prompted whether or not to run in Evaluation mode with y/n.
+Evaluation mode will calculated nDCG/MAP over Cranfield.
 
-cranfield mode will evaluate the model on the Cranfield dataset.
-
-default mode will run the program against the sample source document, data/text.txt
+The regular mode will allow you to query over a Biological textbook in 2 modes:
+1. Hybrid Search (using the geometric mean of embedding/bm25)
+2. BM25
